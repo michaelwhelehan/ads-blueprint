@@ -121,6 +121,67 @@ All ads created PAUSED. Budget sent in cents (dollars x 100). Ad account ID auto
 | `META_PAGE_ID` | No | Can be set in campaign-config.json instead |
 | `META_INSTAGRAM_ACCOUNT_ID` | No | Enables Instagram placements |
 
+## Verification After Implementation
+
+After implementing any spec or feature, always run these verification steps before considering the work complete.
+
+### 1. Type Check (required after every change)
+
+```bash
+npx tsc --noEmit
+```
+
+Fix all type errors before proceeding. Do not use `@ts-ignore` or `any` to suppress errors.
+
+### 2. Lint (required after every change)
+
+```bash
+npm run lint
+npm run lint:fix    # Auto-fix where possible
+```
+
+Ensure zero lint warnings and errors. The project uses ESLint with TypeScript-aware rules.
+
+### 3. Test (required after every feature)
+
+```bash
+npm test                              # Run full test suite
+npm test -- --grep "module name"      # Run tests for specific module
+```
+
+- Write tests alongside implementation — each spec module should have a corresponding test file in `tests/`.
+- Test file naming: `tests/{module-area}/{module-name}.test.ts` (e.g., `tests/shared/brand-config.test.ts`).
+- Cover: Zod schema validation (valid + invalid inputs), pure function logic, error handling paths.
+- For modules with external API calls (Gemini, Meta), mock the API boundary — test the logic around the call, not the call itself.
+
+### 4. Dry Run (when applicable)
+
+For pipeline steps that produce output, verify with a limited run:
+
+```bash
+npm run ads:generate -- --limit=1     # Generate a single image to verify compositing
+npm run ads:matrix                    # Verify matrix output structure
+```
+
+### Verification Checklist Per Spec
+
+| Spec | Key Verifications |
+|---|---|
+| 01 Project Setup | `npx tsc --noEmit` passes, all path aliases resolve, `npm run` scripts defined |
+| 02 Brand Config | Zod schema validates sample `brand.json`, rejects invalid input, loader returns typed config |
+| 03 Ad Inputs | Schema validates sample `ad-inputs.json`, seasonal filtering logic tested with mock dates |
+| 04 Campaign Config | Schema validates sample `campaign-config.json`, budget cent conversion correct |
+| 05 Creative Matrix | Matrix generates correct Cartesian product count, entry IDs match naming convention, 4:1 format ratio holds |
+| 06 Image Prompt System | `buildImagePrompt()` and `buildCopyGenerationPrompt()` produce expected prompt strings for known inputs |
+| 07 Image Generation | Image gen pipeline handles missing assets gracefully, output files are valid PNGs |
+| 08 Text Compositing | Composited images have correct dimensions for feed (1080x1080) and story (1080x1920), text is visible |
+| 09 Review Gallery | Server starts on port 3847, serves gallery HTML, approve/reject toggles persist to matrix |
+| 10 Meta Upload | CTA mapping covers all configured CTAs, account ID prefixed correctly, budget in cents |
+| 11 Performance Reporting | Report handles empty metrics, date ranges parse correctly, HTML output is valid |
+| 12 Multi-Round Optimization | Winner selection respects minimum impression threshold, new round includes winners + fresh concepts |
+| 13 Shared Utilities | Rate limiter enforces configured delays, path helpers return correct round vs legacy paths |
+| 14 Asset Management | Asset loader finds files by convention, missing assets produce clear errors |
+
 ## Specs Reference
 
 When implementing or modifying a module, read the corresponding spec in `specs/` first:
