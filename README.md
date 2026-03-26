@@ -118,4 +118,4 @@ src/
 
 ## License
 
-Private — all rights reserved.
+Use as you please
