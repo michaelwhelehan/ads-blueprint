@@ -118,4 +118,4 @@ src/
 
 ## License
 
-Use as you please
+[MIT](LICENSE)
